@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="js/jquery-2.1.4.min.js"></script>
+        <script src="js/webgl_lib.js"></script>
+    </head>
+    <body>
+        <div id="canvas_container">
+        </div>
+        <table id="controls" style>
+            <tr>
+                <td>
+                    <div id="globalControls" style="overflow: hidden; float: left;">
+                     <div id="ambientLightControls" style="overflow: hidden; float: left;">
+                         <a style="font-weight: bold;">Ambient light:</a>
+                         <br>
+                         <label>Color:</label>
+                         <input style="width: 50px" id="colR" value = "25" />
+                         <input style="width: 50px" id="colG" value = "25" />
+                         <input style="width: 50px" id="colB" value = "25" />
+                         <br>
+                     </div>
+                     <div id="directionalLightControls" style="overflow: hidden; float: left;padding-left: 35px;">
+                         <a style="font-weight: bold;">Directional light:</a>
+                         <br>
+                         <label>Color:</label>
+                         <input style="width: 50px" id="colR" value = "127" />
+                         <input style="width: 50px" id="colG" value = "127" />
+                         <input style="width: 50px" id="colB" value = "127" />
+                         <br>
+                         <label>Direction:</label>
+                         <input style="width: 50px" id="dirX" value = "1" />
+                         <input style="width: 50px" id="dirY" value = "0" />
+                         <input style="width: 50px" id="dirZ" value = "-1" />
+                     </div>
+                   </div>
+                    <div id="barrelSpecular" style="overflow: hidden; float: left; padding-left: 20px;">
+                        <a style="font-weight: bold;">Specular properties of barrels:</a>
+                        <br>
+                        <label>Color:</label>
+                         <input style="width: 50px" id="colR" value = "255" />
+                         <input style="width: 50px" id="colG" value = "255" />
+                         <input style="width: 50px" id="colB" value = "255" />
+                         <br>
+                         <label>Specular value:</label>
+                         <input style="width: 50px" id="specular" value = "40" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="localControls" style="overflow: hidden; float: left;">
+                        <div id="pointLightControls" style="overflow: hidden; float: left;">
+                            <a style="font-weight: bold;">Pointlight:</a>
+                            <br>
+                            <label>Position:</label>
+                            <input style="width: 50px" id="posX" value = "0" />
+                            <input style="width: 50px" id="posY" value = "-3" />
+                            <input style="width: 50px" id="posZ" value = "0" />
+                            <br>
+                            <label>Color:</label>
+                            <input style="width: 50px" id="colR" value = "100" />
+                            <input style="width: 50px" id="colG" value = "255" />
+                            <input style="width: 50px" id="colB" value = "100" />
+                            <br>
+                            <label>Distance:</label>
+                            <input style="width: 50px" id="pLightDistance" value = "10" />
+                        </div>
+                        <div id="spotLightControls" style="overflow: hidden; float: left;padding-left: 20px;">
+                            <a style="font-weight: bold;">Spot light:</a>
+                            <br>
+                            <label>Position:</label>
+                            <input style="width: 50px" id="posX" value = "0" />
+                            <input style="width: 50px" id="posY" value = "0" />
+                            <input style="width: 50px" id="posZ" value = "0" />
+                            <br>
+                            <label>Color:</label>
+                            <input style="width: 50px" id="colR" value = "255" />
+                            <input style="width: 50px" id="colG" value = "0" />
+                            <input style="width: 50px" id="colB" value = "0" />
+                            <br>
+                            <label>Target:</label>
+                            <input style="width: 50px" id="tarX" value = "0" />
+                            <input style="width: 50px" id="tarY" value = "0" />
+                            <input style="width: 50px" id="tarZ" value = "-1" />
+                            <br>
+                            <label>Distance:</label>
+                            <input style="width: 50px" id="sLightDistance" value = "10" />
+                            <br>
+                            <label>Angle:</label>
+                            <input style="width: 50px" id="sLightAngle" value = "20" />
+                            <br>
+                            <label>Hardness:</label>
+                            <input style="width: 50px" id="sLightHardness" value = "10" />
+                        </div>
+                    </div>
+                    <div id="pillarSpecular" style="overflow: hidden; float: left; padding-left: 20px;">
+                        <a style="font-weight: bold;">Specular properties of pillars:</a>
+                        <br>
+                        <label>Color:</label>
+                         <input style="width: 50px" id="colR" value = "0" />
+                         <input style="width: 50px" id="colG" value = "0" />
+                         <input style="width: 50px" id="colB" value = "0" />
+                         <br>
+                         <label>Specular value:</label>
+                         <input style="width: 50px" id="specular" value = "0" />
+                         <br>
+                         <br>
+                         <button id="morePointLights">Add more pointlights</button>
+                    </div>
+                </td>
+            </tr>
+            
+        </table>
+        <script>
+            var ambControls = $("#ambientLightControls");
+            var dirControls = $("#directionalLightControls");
+            var pointlightControls = $("#pointLightControls");
+            var spotLightControls = $("#spotLightControls");
+            var barrelSpecular = $("#barrelSpecular");
+            var pillarSpecular = $("#pillarSpecular");
+            //create renderer and place renderer canvas to div
+            var renderer = new WEBGL_LIB.Renderer(1200, 650);
+            $("#canvas_container").append(renderer.canvas);
+            
+            //create world
+            renderer.createWorld("world1");
+            //set worlds global lighting
+            renderer.activeWorld.ambientLight = new WEBGL_LIB.Math.Entities.Vector3f(0.1, 0.1, 0.1);
+            renderer.activeWorld.directionalLightColor = new WEBGL_LIB.Math.Entities.Vector3f(0.5, 0.5, 0.5);
+            renderer.activeWorld.directionalLightDir = new WEBGL_LIB.Math.Entities.Vector3f(1.0, 0.0, -1.0);
+            
+            //setup camera for rendering
+            var camera = new WEBGL_LIB.CameraObject({
+                                    fov:140.0, 
+                                    width:renderer.canvas.width, 
+                                    height:renderer.canvas.height, 
+                                    nearClip:0.1, 
+                                    farClip:1000.0
+            });
+            //tranform camera
+            //camera.rotateCamera(-Math.PI/4, Math.PI/4.5);
+            camera.transformations.location = new WEBGL_LIB.Math.Entities.Vector3f(-3, 0, 15);
+            renderer.activeWorld.addCamera(camera);
+            //load modles and add meshes that will be transformed
+            var colladaDoc = null;
+            var barrelMeshes = null;
+            var pillarMeshes = null;
+            var wallsMesh = null;
+            var loaded = false;
+            var pLight1 = null, pLight2 = null, pLight3 = null, pLight4 = null, pLight5 = null;
+            var pointLightsAdded = false;
+            var pLightRotation = 0.0;
+    
+            //cubeMesh.scaleXYZ(6, 6, 6);
+            //mesh.scaleXYZ(6, 6, 6);
+            var pointlight = new WEBGL_LIB.PointLightObject(
+                new WEBGL_LIB.Math.Entities.Vector3f(0, -3.25, 0),//position
+                new WEBGL_LIB.Math.Entities.Vector3f(0, 1, 0),// color
+                100                                           //light distance
+            );
+    
+            var spotLight = new WEBGL_LIB.SpotlightObject(
+                new WEBGL_LIB.Math.Entities.Vector3f(-2, 2, 0), //position
+                new WEBGL_LIB.Math.Entities.Vector3f(0, 0, 1), // color
+                50,                                            //light distance
+                new WEBGL_LIB.Math.Entities.Vector3f(0, 0, 0), //spotlight target
+                Math.PI/10,                                    //spotlight cone angle
+                30                                           //spot hardness
+            );
+            renderer.activeWorld.addPointLight(pointlight);
+            renderer.activeWorld.addSpotlight(spotLight);
+            
+            $.ajax({
+                type: "GET",
+                url: "models/walls.dae",
+                dataType: "xml",
+                success: function (xml) {
+                    colladaDoc = xml;
+                    renderer.loadImage("models/walls_texture.png", "walls");
+                    renderer.loadModelFromCollada(colladaDoc, "walls");
+                    renderer.calculateNormals(renderer.loadedModels["walls"]);
+                    wallsMesh = new WEBGL_LIB.MeshObject(renderer.loadedModels["walls"]);
+                    wallsMesh.setTexture(renderer.loadedTextures["walls"]);
+                    renderer.activeWorld.addMesh(wallsMesh);
+                    wallsMesh.translateWorldXYZ(0,-5,0);
+                    wallsMesh.rotateWorldXYZ(0, Math.PI, 0);
+                    wallsMesh.scaleXYZ(4, 4, 4);
+            }});
+        
+            $.ajax({
+                type: "GET",
+                url: "models/pilar.dae",
+                dataType: "xml",
+                success: function (xml) {
+                    colladaDoc = xml;
+                    pillarMeshes = [];
+                    renderer.loadImage("models/pilar_texture.png", "pillar");
+                    renderer.loadModelFromCollada(colladaDoc, "pillar");
+                    renderer.calculateNormals(renderer.loadedModels["pillar"]);
+                    for(var i = 0; i < 5; i++){
+                        pillarMeshes[i] = new WEBGL_LIB.MeshObject(renderer.loadedModels["pillar"]);
+                        pillarMeshes[i].setTexture(renderer.loadedTextures["pillar"]);
+                        renderer.activeWorld.addMesh(pillarMeshes[i]);
+                        pillarMeshes[i].translateWorldXYZ(0,1,0);
+                        //barrelMesh.surfaceProperties.useLighting = false;
+                    }
+                    //place barrels
+                    pillarMeshes[0].translateWorldXYZ(-18, 0, 16);
+                    pillarMeshes[1].translateWorldXYZ(-18, 0, 0);
+                    pillarMeshes[2].translateWorldXYZ(0, 0, 16);
+                    pillarMeshes[3].translateWorldXYZ(0, 0, 7);
+                    pillarMeshes[4].translateWorldXYZ(-9, 0, 8);
+            }});
+            
+            $.ajax({
+                type: "GET",
+                url: "models/barrel.dae",
+                dataType: "xml",
+                success: function (xml) {
+                    colladaDoc = xml;
+                    barrelMeshes = [];
+                    renderer.loadImage("models/barrel_texture.png", "barrel");
+                    renderer.loadModelFromCollada(colladaDoc, "barrel");
+                    renderer.calculateNormals(renderer.loadedModels["barrel"]);
+                    for(var i = 0; i < 6; i++){
+                        barrelMeshes[i] = new WEBGL_LIB.MeshObject(renderer.loadedModels["barrel"]);
+                        barrelMeshes[i].setTexture(renderer.loadedTextures["barrel"]);
+                        renderer.activeWorld.addMesh(barrelMeshes[i]);
+                        barrelMeshes[i].translateWorldXYZ(0,-3.20,0);
+                        //barrelMesh.surfaceProperties.useLighting = false;
+                        barrelMeshes[i].surfaceProperties.specular = 150;
+                        barrelMeshes[i].surfaceProperties.specularColor = new WEBGL_LIB.Math.Entities.Vector3f(1, 1, 1);
+                    }
+                    //place barrels
+                    barrelMeshes[0].translateWorldXYZ(0, 0, 0);
+                    barrelMeshes[1].translateWorldXYZ(1.5, 0, -2);
+                    barrelMeshes[2].translateWorldXYZ(-1.5, 0, -2);
+                    barrelMeshes[3].translateWorldXYZ(0, 2.65, -1.2);
+                    barrelMeshes[4].translateWorldXYZ(-3, -0.35, 0.5);
+                    barrelMeshes[4].rotateWorldXYZ(Math.PI/2, Math.PI/1.5, 0);
+                    barrelMeshes[5].translateWorldXYZ(2.5, 0, 0);
+                    
+                    setupRendering();
+            }});
+        
+            var posX = false;
+            var posY = false;
+            var negX = false;
+            var negY = false;
+            var posZ = false;
+            var negZ = false;
+            var rotationX = 0;
+            var rotationY = 0;
+
+            function rotateCameraWButtons(){
+               var moveY = 0;
+               var moveX = 0;
+               var moveZ = 0;
+               moveY += posY ? 1 : 0;
+               moveY += negY ? -1 : 0;
+               moveX += posX ? -1 : 0;
+               moveX += negX ? 1 : 0;
+               moveZ += posZ ? 1 : 0;
+               moveZ += negZ ? -1 : 0;
+               //rotationX += (Math.PI / 500) * moveY;
+               //rotationY += (Math.PI / 500) * moveX;
+               //camera.rotation.x += (Math.PI / 2000) * yMove;
+               //camera.rotation.y += (Math.PI / 2000) * xMove;
+               //camera.rotateCamera((Math.PI / 100) * moveY, (Math.PI / 100) * moveX, 0);
+               camera.rotateCamera((Math.PI / 200) * moveY, (Math.PI / 200) * moveX, (Math.PI / 200) * moveZ);
+            };
+
+            var forward = false;
+            var left = false;
+            var back = false;
+            var right = false;
+
+            function getPressedKeys(event){
+                console.debug(event.keyCode);
+                switch(event.keyCode){
+                    case 87:
+                        forward = true;
+                        break;
+                    case 65:
+                        left = true;
+                        break;
+                    case 83:
+                        back = true;
+                        break;
+                    case 68:
+                        right = true;
+                        break;
+                    case 38:
+                        posY = true;
+                        break;
+                    case 40:
+                        negY = true;
+                        break;
+                    case 37:
+                        negX = true;
+                        break;
+                    case 39:
+                        posX = true;
+                        break;
+                    case 74:
+                        negZ = true;
+                        break;
+                    case 75:
+                        posZ = true;
+                        break;
+                    default:
+                        break;
+                }
+            };
+            document.onkeydown = getPressedKeys;
+
+            function getReleasedKeys(event){
+                switch(event.keyCode){
+                    case 87:
+                        forward = false;
+                        break;
+                    case 65:
+                        left = false;
+                        break;
+                    case 83:
+                        back = false;
+                        break;
+                    case 68:
+                        right = false;
+                        break;
+                     case 38:
+                        posY = false;
+                        break;
+                    case 40:
+                        negY = false;
+                        break;
+                    case 37:
+                        negX = false;
+                        break;
+                    case 39:
+                        posX = false;
+                        break;
+                    case 74:
+                        negZ = false;
+                        break;
+                    case 75:
+                        posZ = false;
+                        break;
+                    default:
+                        break;
+                }
+            };
+
+            function moveCamera(){
+                var moveZ = 0;
+                var moveX = 0;
+                moveZ += forward ? 1 : 0;
+                moveZ += back ? -1 : 0;
+                moveX += left ? -1 : 0;
+                moveX += right ? 1 : 0;
+                camera.translateCamera(camera.getRight(), moveX * 0.25);
+                camera.translateCamera(camera.forward, moveZ * 0.25);
+            };
+
+            document.onkeyup = getReleasedKeys;
+        
+            function updateLights(){
+                //ambient light
+                renderer.activeWorld.ambientLight.x = parseFloat(ambControls.children("#colR").val()) / 255;
+                renderer.activeWorld.ambientLight.y = parseFloat(ambControls.children("#colG").val()) / 255;
+                renderer.activeWorld.ambientLight.z = parseFloat(ambControls.children("#colB").val()) / 255;
+                
+                //directional light
+                renderer.activeWorld.directionalLightColor.x = parseFloat(dirControls.children("#colR").val()) / 255;
+                renderer.activeWorld.directionalLightColor.y = parseFloat(dirControls.children("#colG").val()) / 255;
+                renderer.activeWorld.directionalLightColor.z = parseFloat(dirControls.children("#colB").val()) / 255;
+                
+                renderer.activeWorld.directionalLightDir.x = parseFloat(dirControls.children("#dirX").val());
+                renderer.activeWorld.directionalLightDir.y = parseFloat(dirControls.children("#dirY").val());
+                renderer.activeWorld.directionalLightDir.z = parseFloat(dirControls.children("#dirZ").val());
+                
+                // pointlight
+                
+                pointlight.lightColor.x = parseFloat(pointlightControls.children("#colR").val()) / 255;
+                pointlight.lightColor.y = parseFloat(pointlightControls.children("#colG").val()) / 255;
+                pointlight.lightColor.z = parseFloat(pointlightControls.children("#colB").val()) / 255;
+                
+                pointlight.position.x = parseFloat(pointlightControls.children("#posX").val());
+                pointlight.position.y = parseFloat(pointlightControls.children("#posY").val());
+                pointlight.position.z = parseFloat(pointlightControls.children("#posZ").val());
+                
+                pointlight.lightLength = parseFloat(pointlightControls.children("#pLightDistance").val());
+                
+                //spot light
+                spotLight.lightColor.x = parseFloat(spotLightControls.children("#colR").val()) / 255;
+                spotLight.lightColor.y = parseFloat(spotLightControls.children("#colG").val()) / 255;
+                spotLight.lightColor.z = parseFloat(spotLightControls.children("#colB").val()) / 255;
+                
+                spotLight.position.x = parseFloat(spotLightControls.children("#posX").val());
+                spotLight.position.y = parseFloat(spotLightControls.children("#posY").val());
+                spotLight.position.z = parseFloat(spotLightControls.children("#posZ").val());
+                
+                spotLight.target.x = parseFloat(spotLightControls.children("#tarX").val());
+                spotLight.target.y = parseFloat(spotLightControls.children("#tarY").val());
+                spotLight.target.z = parseFloat(spotLightControls.children("#tarZ").val());
+                
+                
+                spotLight.lightLength = parseFloat(spotLightControls.children("#sLightDistance").val());
+                spotLight.angle = WEBGL_LIB.Math.angleToRadians(parseFloat(spotLightControls.children("#sLightAngle").val()));
+                spotLight.hardness = parseFloat(spotLightControls.children("#sLightHardness").val());
+                
+            }
+            
+            function updateSpeculars(){
+                var barR = parseFloat(barrelSpecular.children("#colR").val())/255;
+                var barG = parseFloat(barrelSpecular.children("#colG").val())/255;
+                var barB = parseFloat(barrelSpecular.children("#colB").val())/255;
+                var barSpec = parseFloat(barrelSpecular.children("#specular").val());
+                for(var i = 0; i < barrelMeshes.length; i++){
+                    barrelMeshes[i].setSpecularReflection(barSpec, new WEBGL_LIB.Math.Entities.Vector3f(barR, barG, barB));
+                }
+                var pilR = parseFloat(pillarSpecular.children("#colR").val())/255;
+                var pilG = parseFloat(pillarSpecular.children("#colG").val())/255;
+                var pilB = parseFloat(pillarSpecular.children("#colB").val())/255;
+                var pilSpec = parseFloat(pillarSpecular.children("#specular").val());
+                for(var i = 0; i < pillarMeshes.length; i++){
+                    pillarMeshes[i].setSpecularReflection(pilSpec, new WEBGL_LIB.Math.Entities.Vector3f(pilR, pilG, pilB));
+                }
+                
+            }
+            
+            $("#morePointLights").click(function(){
+                //CREATE BUNCH OF SPOTLIGHS
+                pLight1 = new WEBGL_LIB.PointLightObject(
+                    new WEBGL_LIB.Math.Entities.Vector3f(-10, 0, 4),//position
+                    new WEBGL_LIB.Math.Entities.Vector3f(1, 0, 0),// color
+                    20);                                         //light distance
+                pLight2 = new WEBGL_LIB.PointLightObject(
+                    new WEBGL_LIB.Math.Entities.Vector3f(-10, 0, 12),//position
+                    new WEBGL_LIB.Math.Entities.Vector3f(1, 1, 0),// color
+                    20);                                         //light distance
+                pLight3 = new WEBGL_LIB.PointLightObject(
+                    new WEBGL_LIB.Math.Entities.Vector3f(-3, 0, 5),//position
+                    new WEBGL_LIB.Math.Entities.Vector3f(0, 1, 0),// color
+                    20);                                         //light distance
+                pLight4 = new WEBGL_LIB.PointLightObject(
+                    new WEBGL_LIB.Math.Entities.Vector3f(-3, 0, 10),//position
+                    new WEBGL_LIB.Math.Entities.Vector3f(0, 1, 1),// color
+                    20);                                         //light distance
+                pLight5 = new WEBGL_LIB.PointLightObject(
+                    new WEBGL_LIB.Math.Entities.Vector3f(-5, 0, 20),//position
+                    new WEBGL_LIB.Math.Entities.Vector3f(0, 0, 1),// color
+                    20);                                         //light distance
+                
+                renderer.activeWorld.addPointLight(pLight1);
+                renderer.activeWorld.addPointLight(pLight2);
+                renderer.activeWorld.addPointLight(pLight3);
+                renderer.activeWorld.addPointLight(pLight4);
+                renderer.activeWorld.addPointLight(pLight5);
+                pointLightsAdded = true;
+            });
+            
+            function movePointLights(){
+                //MOVE SPOTLIGHS IN CIRCLES
+                pLightRotation += 0.01;
+                pLight1.position.x = -10 + Math.sin(pLightRotation)*3;
+                pLight1.position.z = 4 + Math.cos(pLightRotation)*3;
+                pLight2.position.x = -10 + Math.sin(-pLightRotation)*5;
+                pLight2.position.z = 12 + Math.cos(-pLightRotation)*5;
+                pLight3.position.x = -3 + Math.sin(pLightRotation)*6;
+                pLight3.position.z = 5 + Math.cos(pLightRotation)*6;
+                pLight4.position.x = -3 + Math.sin(-pLightRotation)*2;
+                pLight4.position.z = 10 + Math.cos(-pLightRotation)*2;
+                pLight5.position.x = -5 + Math.sin(pLightRotation)*7;
+                pLight5.position.z = 20 + Math.cos(pLightRotation)*7;
+            }
+            
+            function update(){
+                updateLights();
+                if(pointLightsAdded){
+                    movePointLights();
+                }
+                updateSpeculars();
+                moveCamera();
+                rotateCameraWButtons();
+                //barrelMeshes[0].rotateLocalXYZ(0.001, 0, 0);
+                renderer.render();
+                requestAnimationFrame(update, renderer.canvas);
+            }
+            function setupRendering(){
+                renderer.render();
+                update();
+            }
+        </script>
+    </body>
+</html>

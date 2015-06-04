@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="js/jquery-2.1.4.min.js"></script>
+        <script src="js/webgl_lib.js"></script>
+    </head>
+    <body>
+        <div id="canvas_container">
+        </div>
+        <div id="controls">
+            <div id="model">
+                <h3>Model</h3>
+                <label>Dounut</label>
+                <input type="checkbox" id="dounutM">
+                <label>Barrel</label>
+                <input type="checkbox" id="barrelM">
+                <label>Pilar</label>
+                <input type="checkbox" id="pillarM">
+            </div>
+            <div id="texture">
+                <h3>Texture</h3>
+                <label>Dounut</label>
+                <input type="checkbox" id="dounutT">
+                <label>Barrel</label>
+                <input type="checkbox" id="barrelT">
+                <label>Pilar</label>
+                <input type="checkbox" id="pillarT">
+            </div>
+            <div id="surface">
+                <h3>Surface</h3>
+                <label>Use texture</label>
+                <input type="checkbox" id="useTexture">
+                <label>Color:</label>
+                <input style="width: 50px" id="colR" value = "100" />
+                <input style="width: 50px" id="colG" value = "100" />
+                <input style="width: 50px" id="colB" value = "100" />
+                <br>
+            </div>
+        </div>
+        <script>
+            //create renderer and place renderer canvas to div
+            var renderer = new WEBGL_LIB.Renderer(1000,650);
+            $("#canvas_container").append(renderer.canvas);
+            
+            //create world
+            renderer.createWorld("world1");
+            //set worlds global lighting
+            renderer.activeWorld.ambientLight = new WEBGL_LIB.Math.Entities.Vector3f(0.3, 0.3, 0.3);
+            renderer.activeWorld.directionalLightColor = new WEBGL_LIB.Math.Entities.Vector3f(0.7, 0.7, 0.7);
+            renderer.activeWorld.directionalLightDir = new WEBGL_LIB.Math.Entities.Vector3f(1.0, 0.0, -1.0);
+            
+            //setup camera for rendering
+            var camera = new WEBGL_LIB.CameraObject({
+                                    fov:140.0, 
+                                    width:renderer.canvas.width, 
+                                    height:renderer.canvas.height, 
+                                    nearClip:0.1, 
+                                    farClip:1000.0
+            });
+            //tranform camera
+            camera.rotateCamera(-Math.PI/4.5, Math.PI/4);
+            camera.transformations.location = new WEBGL_LIB.Math.Entities.Vector3f(9, 12, 5);
+            renderer.activeWorld.addCamera(camera);
+            //load modles and add meshes that will be transformed
+            var colladaDoc = null;
+            var mesh = null;
+            var loaded = false;
+            
+            //create axis lines
+            renderer.loadedModels["xaxel"] = {
+                vertices : {
+                        count : 0,
+                        data : [-4, 0, 0,
+                                4, 0, 0],
+                        stride : 3
+                    },
+                    normals : {
+                        count : 0,
+                        data : [1,0,0, 1,0,0],
+                        stride : 0
+                    },
+                    textureCoords : {
+                        count : 0,
+                        data : [0, 0, 0, 0],
+                        stride : 0
+                    },
+                    indices : {
+                        vertexIndices : [0, 1],
+                    }
+            };
+
+            renderer.loadedModels["yaxel"] = {
+                vertices : {
+                        count : 0,
+                        data : [0, -4, 0,
+                                0, 4, 0],
+                        stride : 3
+                    },
+                    normals : {
+                        count : 0,
+                        data : [1,0,0, 1,0,0],
+                        stride : 0
+                    },
+                    textureCoords : {
+                        count : 0,
+                        data : [0, 1, 0, 1],
+                        stride : 0
+                    },
+                    indices : {
+                        vertexIndices : [0, 1],
+                    }
+            };
+
+            renderer.loadedModels["zaxel"] = {
+                vertices : {
+                        count : 0,
+                        data : [0, 0, -4,
+                                0, 0, 4],
+                        stride : 3
+                    },
+                    normals : {
+                        count : 0,
+                        data : [1,0,0, 1,0,0],
+                        stride : 0
+                    },
+                    textureCoords : {
+                        count : 0,
+                        data : [1, 1, 1, 1],
+                        stride : 0
+                    },
+                    indices : {
+                        vertexIndices : [0, 1],
+                    }
+            };
+            renderer.gl.lineWidth(4.0);
+    
+    
+            //cubeMesh.scaleXYZ(6, 6, 6);
+            //mesh.scaleXYZ(6, 6, 6);
+
+            var x = new WEBGL_LIB.MeshObject(renderer.loadedModels.xaxel);
+            renderer.activeWorld.addMesh(x);
+            x.primitiveMode = "LINES";
+            x.surfaceProperties.surfaceColor = new WEBGL_LIB.Math.Entities.Vector3f(1.0, 0.0, 0.0);
+            x.surfaceProperties.useLighting = false;
+            x.transformations.location.z = -5;
+            
+            var y = new WEBGL_LIB.MeshObject(renderer.loadedModels.yaxel);
+            renderer.activeWorld.addMesh(y);
+            y.primitiveMode = "LINES";
+            y.surfaceProperties.surfaceColor = new WEBGL_LIB.Math.Entities.Vector3f(0.0, 1.0, 0.0);
+            y.surfaceProperties.useLighting = false;
+            y.transformations.location.z = -5;
+            
+            var z = new WEBGL_LIB.MeshObject(renderer.loadedModels.zaxel);
+            renderer.activeWorld.addMesh(z);
+            z.primitiveMode = "LINES";
+            z.surfaceProperties.surfaceColor = new WEBGL_LIB.Math.Entities.Vector3f(0.0, 0.0, 1.0);
+            z.surfaceProperties.useLighting = false;
+            z.transformations.location.z = -5;
+            
+            $.ajax({
+                type: "GET",
+                url: "models/pilar.dae",
+                dataType: "xml",
+                success: function (xml) {
+                    colladaDoc = xml;
+                    renderer.loadModelFromCollada(colladaDoc, "pillar");
+                    renderer.calculateNormals(renderer.loadedModels["pillar"]);
+                    barrelMesh = new WEBGL_LIB.MeshObject(renderer.loadedModels["pillar"]);
+                    renderer.loadImage("models/pilar_texture.png", "pillar");
+            }});
+        
+            $.ajax({
+                type: "GET",
+                url: "models/dounut.dae",
+                dataType: "xml",
+                success: function (xml) {
+                    colladaDoc = xml;
+                    renderer.loadModelFromCollada(colladaDoc, "dounut");
+                    renderer.calculateNormals(renderer.loadedModels["dounut"]);
+                    barrelMesh = new WEBGL_LIB.MeshObject(renderer.loadedModels["dounut"]);
+                    renderer.loadImage("models/dounut.png", "dounut");
+            }});
+        
+            $.ajax({
+                type: "GET",
+                url: "models/barrel.dae",
+                dataType: "xml",
+                success: function (xml) {
+                    colladaDoc = xml;
+                    renderer.loadModelFromCollada(colladaDoc, "barrel");
+                    renderer.calculateNormals(renderer.loadedModels["barrel"]);
+                    mesh = new WEBGL_LIB.MeshObject(renderer.loadedModels["barrel"]);
+                    renderer.loadImage("models/barrel_texture.png", "barrel");
+                    mesh.setTexture(renderer.loadedTextures["barrel"]);
+                    renderer.activeWorld.addMesh(mesh);
+                    mesh.translateWorldXYZ(0,0,-5);
+                    mesh.useTexture = false;
+                    mesh.surfaceProperties.surfaceColor = new WEBGL_LIB.Math.Entities.Vector3f(0.4, 0.4, 0.4)
+                    //barrelMesh.surfaceProperties.useLighting = false;
+                    setupRendering();
+            }});
+        
+            $("#model input").on("change", function(){
+                $("#model input").not(this).prop("checked", false);
+            });
+            $("#texture input").on("change", function(){
+                $("#texture input").not(this).prop("checked", false);
+            });
+             $("#useTexture").on("change", function(){
+                mesh.useTexture =  $("#useTexture").prop("checked");
+            });
+        
+            function updateModel(){
+                mesh.surfaceProperties.surfaceColor.x = parseFloat($("#colR").val()) / 255;
+                mesh.surfaceProperties.surfaceColor.y = parseFloat($("#colG").val()) / 255;
+                mesh.surfaceProperties.surfaceColor.z = parseFloat($("#colB").val()) / 255;
+                
+                //change model
+                if($("#dounutM").prop("checked")){
+                    mesh.model = renderer.loadedModels["dounut"];
+                }
+                if($("#pillarM").prop("checked")){
+                    mesh.model = renderer.loadedModels["pillar"];
+                }
+                if($("#barrelM").prop("checked")){
+                    mesh.model = renderer.loadedModels["barrel"];
+                }
+                
+                //change texture
+                if($("#dounutT").prop("checked")){
+                    mesh.setTexture(renderer.loadedTextures["dounut"]);
+                }
+                if($("#pillarT").prop("checked")){
+                    mesh.setTexture(renderer.loadedTextures["pillar"]);
+                }
+                if($("#barrelT").prop("checked")){
+                    mesh.setTexture(renderer.loadedTextures["barrel"]);
+                }
+            }
+            
+            function update(){
+                updateModel();
+                mesh.rotateWorldXYZ(0, 0.01, 0);
+                renderer.render();
+                requestAnimationFrame(update, renderer.canvas);
+            }
+            function setupRendering(){
+                renderer.render();
+                update();
+            }
+        </script>
+    </body>
+</html>

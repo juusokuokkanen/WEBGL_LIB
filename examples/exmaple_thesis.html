@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+<head>
+	<script src="js/webgl_lib.js"></script>
+</head>
+<body>
+<!--  <img src="{{ static_url('images/crateImage.jpg') }}" id="crateImage" style="display:none;"/> -->
+<script>
+
+    var renderer = new WEBGL_LIB.Renderer(window.innerWidth, window.innerHeight);
+    
+    document.body.appendChild(renderer.canvas);
+    
+    //Resize renderer-canvas when window resized
+    window.onresize = function(){
+        renderer.resizeRenderer(window.innerWidth, window.innerHeight);
+    };
+    
+    //Define world
+    renderer.createWorld("maailma");
+    
+    var domReq = new XMLHttpRequest();
+    domReq.open("GET","models/walls.dae",false);
+    domReq.send();
+    colladaDoc1=domReq.responseXML;
+    
+    domReq.open("GET","models/dounut.dae",false);
+    domReq.send();
+    colladaDoc2=domReq.responseXML;
+    
+    renderer.loadModelFromCollada(colladaDoc1, "walls");
+    renderer.loadModelFromCollada(colladaDoc2, "dounut");
+    
+    renderer.calculateNormals(renderer.loadedModels["walls"]);
+    renderer.calculateNormals(renderer.loadedModels["dounut"]);
+    
+    renderer.loadImage("models/dounut.png", "dounutTexture");
+    
+    var wallsMesh = new WEBGL_LIB.MeshObject(renderer.loadedModels["walls"]);
+    wallsMesh.setSurfaceColor(new WEBGL_LIB.Math.Entities.Vector3f(0.8, 0.2, 0.5))
+    var dounutMesh = new WEBGL_LIB.MeshObject(renderer.loadedModels["dounut"]);
+    dounutMesh.setTexture(renderer.loadedTextures["dounutTexture"]);
+    dounutMesh.setSpecularReflection(36, new WEBGL_LIB.Math.Entities.Vector3f(1, 1, 1));
+    
+    renderer.activeWorld.addMesh(wallsMesh);
+    renderer.activeWorld.addMesh(dounutMesh);
+    
+    wallsMesh.rotateWorldXYZ(0, Math.PI, 0);
+    wallsMesh.translateWorldXYZ(5, -10, 0);
+    wallsMesh.scaleXYZ(20, 20, 20);
+    
+    dounutMesh.scaleXYZ(1, 1, 1);
+    
+    renderer.activeWorld.ambientLight = new WEBGL_LIB.Math.Entities.Vector3f(0.1, 0.1, 0.1);
+    renderer.activeWorld.directionalLightColor = new WEBGL_LIB.Math.Entities.Vector3f(0.0, 0.0, 0.0);
+    renderer.activeWorld.directionalLightDir = new WEBGL_LIB.Math.Entities.Vector3f(0.3, -1.0, 0.0);
+    
+    var camera = new WEBGL_LIB.CameraObject({
+                                    fov:140.0, 
+                                    width:renderer.canvas.width, 
+                                    height:renderer.canvas.height, 
+                                    nearClip:0.1, 
+                                    farClip:1000.0
+    });
+    renderer.activeWorld.addCamera(camera);
+    camera.translateWorldXYZ(-10, 4, 16);
+    camera.rotateCamera(-Math.PI/9, -Math.PI/4.5);
+    
+    
+    renderer.render();
+
+    var pointlight = new WEBGL_LIB.PointLightObject(
+                new WEBGL_LIB.Math.Entities.Vector3f(0, 0, 0),//position
+                new WEBGL_LIB.Math.Entities.Vector3f(1, 1, 1),// color
+                100                                           //light distance
+    );
+    
+    var spotlight = new WEBGL_LIB.SpotlightObject(
+                new WEBGL_LIB.Math.Entities.Vector3f(-3, 3, 3), //position
+                new WEBGL_LIB.Math.Entities.Vector3f(0, 0, 1), // colot
+                50,                                            //light distance
+                new WEBGL_LIB.Math.Entities.Vector3f(0, 0, 0), //spotlight target
+                Math.PI/10,                                    //spotlight cone angle
+                30                                           //spot hardness
+            );
+    
+    renderer.activeWorld.addPointLight(pointlight);
+    renderer.activeWorld.addSpotlight(spotlight);
+    
+    var stepX = 0.01;
+    var stepY = 0.02;
+    var pointMove = 0.0;
+    var targetMove = 0.0;
+    
+    function update(){
+        dounutMesh.rotateWorldXYZ(stepX, stepY, 0);
+        var vect = new WEBGL_LIB.Math.Entities.Vector3f(0.5 * Math.cos(pointMove), 0, 0);
+        pointMove += 0.01;
+        pointlight.position = pointlight.position.addVect(vect);
+        spotlight.target.z += 0.05 * Math.cos(targetMove);
+        targetMove += 0.01;
+        requestAnimationFrame(update, renderer.canvas);
+        renderer.render();
+    }
+    update();
+    
+</script>
+</body>
+</html>
